@@ -26,7 +26,7 @@ CORE_SRCS = src/ministream.c \
 APP_SRCS = src/main.c $(CORE_SRCS)
 
 # Varsayılan Hedef
-all: baslangic ministream ministream.so generator bitis
+all: baslangic ministream ministream.so generator test_temel test_benchmark bitis
 
 baslangic:
 	@echo -e "\n$(YELLOW)==================================================$(RESET)"
@@ -51,6 +51,21 @@ generator: data/dataset_generator.c
 	@$(CC) -O3 data/dataset_generator.c -o generator
 	@echo -e "$(GREEN)   ✔ Başarılı!$(RESET)"
 
+test_temel: $(CORE_SRCS) test/test_temel.c
+	@echo -e "$(CYAN)🧪 Birim Testleri derleniyor...$(RESET)"
+	@$(CC) $(CFLAGS) -I src test/test_temel.c $(CORE_SRCS) -o test_temel
+	@echo -e "$(GREEN)   ✔ Başarılı!$(RESET)"
+
+# Hedef 5: Performans Benchmark Testleri
+test_benchmark: $(CORE_SRCS) test/test_benchmark.c
+	@echo -e "$(CYAN)⏱️  Performans Testleri derleniyor...$(RESET)"
+	@$(CC) $(CFLAGS) -I src test/test_benchmark.c $(CORE_SRCS) -o test_benchmark
+	@echo -e "$(GREEN)   ✔ Başarılı!$(RESET)"
+
+test: test_temel test_benchmark
+	@./test_temel
+	@./test_benchmark
+
 bitis:
 	@echo -e "\n$(GREEN)🚀 BÜTÜN SİSTEMLER AKTİF!$(RESET)"
 	@echo -e "$(YELLOW)👉 Terminal testi için :$(RESET) ./ministream"
@@ -60,5 +75,5 @@ bitis:
 # Temizlik Komutu
 clean:
 	@echo -e "$(RED)🗑️  Eski derleme dosyaları temizleniyor...$(RESET)"
-	@rm -f ministream ministream.so generator benchmark test_temel
+	@rm -f ministream ministream.so generator benchmark test_temel test_benchmark
 	@echo -e "$(GREEN)✨ Tertemiz!$(RESET)\n"

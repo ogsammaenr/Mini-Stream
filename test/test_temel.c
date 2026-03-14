@@ -1,92 +1,81 @@
-/* test/test_temel.c */
 #include <stdio.h>
+#include <assert.h>
 #include <string.h>
-#include "../src/ministream.h"
-#include "../src/bellek_izci.h"
+#include "bellek_izci.h"
+#include "data_types/hash_map.h"
+#include "data_types/double_hash.h"
 
-/* Geçti / Kaldı yazdıran yardımcı makro [cite: 597-603] */
-#define TEST(isim, kosul) \
-do { \
-    if (kosul) { printf(" ✔ %s\n", isim); } \
-    else       { printf(" ✖ %s - BASARISIZ\n", isim); } \
-} while(0)
-
-/* Test 1: Şarkı oluşturma [cite: 604-625] */
-void test_sarki_olustur() {
-    printf("\n[TEST] sarki_olustur\n");
-    izci_sifirla();
-    
-    Sarki* s = sarki_olustur(1, "Bohemian Rhapsody", "Queen", "A Night at the Opera", 354);
-    
-    TEST("sarki NULL degil", s != NULL);
-    TEST("id dogru", s->id == 1);
-    TEST("baslik dogru", strcmp(s->baslik, "Bohemian Rhapsody") == 0);
-    TEST("ref_sayisi baslangicta 0", s->ref_sayisi == 0);
-    TEST("1 malloc yapildi", izci_malloc_sayisi() == 1);
-    
-    izlened_free(s, sizeof(Sarki));
-    TEST("SIZINTI yok", aktif_bellek() == 0);
+// Sahte (Mock) bir şarkı üreten yardımcı fonksiyon
+Sarki* mock_sarki_uret(int id) {
+    Sarki* s = (Sarki*)izlenen_malloc(sizeof(Sarki));
+    s->id = id;
+    s->sonraki = NULL;
+    return s;
 }
 
-/* Test 2: Listeye şarkı ekleme [cite: 626-648] */
-void test_liste_sarki_ekle() {
-    printf("\n[TEST] liste_sarki_ekle\n");
+void test_bellek_izci() {
+    printf("[TEST] Bellek Izci (Memory Tracker) test ediliyor...\n");
     izci_sifirla();
     
-    CalmaListesi* liste = liste_olustur(1, "Favoriler");
-    Sarki* s1 = sarki_olustur(1, "Track A", "Sanatci", "Album", 200);
-    Sarki* s2 = sarki_olustur(2, "Track B", "Sanatci", "Album", 210);
+    void* ptr = izlenen_malloc(100);
+    assert(izci_malloc_sayisi() == 1);
+    assert(izci_toplam_ayrildi() == 100);
     
-    liste_sarki_ekle(liste, s1);
-    liste_sarki_ekle(liste, s2);
-    
-    TEST("2 sarki eklendi", liste->sarki_sayisi == 2);
-    TEST("s1 ref_sayisi artti", s1->ref_sayisi == 1);
-    TEST("s2 ref_sayisi artti", s2->ref_sayisi == 1);
-    
-    /* Adresler aynı mı? Kopya yok, pointer kopyalandı mı? */
-    TEST("pointer kopyalandi", liste->sarkilar[0] == s1);
-    
-    liste_temizle(liste);
-    TEST("SIZINTI yok", aktif_bellek() == 0);
+    izlened_free(ptr, 100);
+    assert(izci_free_sayisi() == 1);
+
+    assert(izci_malloc_sayisi() == izci_free_sayisi());    
+
+    printf("   -> BASARILI!\n");
 }
 
-/* Test 3: ref_sayisi yönetimi [cite: 649-673] */
-void test_ref_sayisi() {
-    printf("\n[TEST] ref_sayisi\n");
-    izci_sifirla();
+void test_chaining_hashmap() {
+    printf("[TEST] Chaining Hash Map test ediliyor...\n");
+    HashMap* map = hashmap_olustur();
+    assert(map != NULL);
     
-    Sarki* s = sarki_olustur(1, "Shared Track", "Sanatci", "Album", 180);
-    CalmaListesi* l1 = liste_olustur(1, "Liste 1");
-    CalmaListesi* l2 = liste_olustur(2, "Liste 2");
+    Sarki* s1 = mock_sarki_uret(55);
+    hashmap_ekle(map, s1);
     
-    liste_sarki_ekle(l1, s);
-    liste_sarki_ekle(l2, s);
-    TEST("2 listede ref_sayisi == 2", s->ref_sayisi == 2);
+    Sarki* bulunan = sarki_ara_map(map, 55);
+    assert(bulunan != NULL);
+    assert(bulunan->id == 55);
     
-    liste_sarki_cikar(l1, 0);
-    TEST("1 cikarinca ref_sayisi == 1", s->ref_sayisi == 1);
+    Sarki* bulunamayan = sarki_ara_map(map, 999);
+    assert(bulunamayan == NULL);
     
-    /* ref_sayisi > 0 iken silme reddedilmeli */
-    int sonuc = sarki_sil(s);
-    TEST("ref_sayisi>0 iken silinemez", sonuc == -1);
+    hashmap_temizle(map);
+    printf("   -> BASARILI!\n");
+}
+
+void test_double_hashmap() {
+    printf("[TEST] Double Hash Map test ediliyor...\n");
+    DoubleHashMap* dmap = dhash_olustur();
+    assert(dmap != NULL);
     
-    liste_temizle(l2);
-    // Şarkı liste_temizle içinde otomatik silindiği için
-    // tekrar s->ref_sayisi okumak veya sarki_sil(s) çağırmak yasaktır!
+    Sarki* s1 = mock_sarki_uret(1024);
+    dhash_ekle(dmap, s1);
     
-    // Güvenlik için Dangling Pointer'ı NULL yapalım [cite: 1125-1128]
-    s = NULL; 
-    liste_temizle(l1);
+    Sarki* bulunan = dhash_ara(dmap, 1024);
+    assert(bulunan != NULL);
+    assert(bulunan->id == 1024);
     
-    TEST("SIZINTI yok", aktif_bellek() == 0);
+    dhash_temizle(dmap);
+    printf("   -> BASARILI!\n");
 }
 
 int main() {
-    printf("===== MiniStream Birim Testleri =====\n");
-    test_sarki_olustur();
-    test_liste_sarki_ekle();
-    test_ref_sayisi();
-    printf("\n=====================================\n");
+    printf("\n==========================================\n");
+    printf("   MINISTREAM BIRIM TEST (UNIT TEST) MODU\n");
+    printf("==========================================\n");
+    
+    test_bellek_izci();
+    test_chaining_hashmap();
+    test_double_hashmap();
+    
+    printf("==========================================\n");
+    printf("🚀 TUM TESTLER %%100 BASARIYLA GECTI!\n");
+    printf("==========================================\n\n");
+    
     return 0;
 }

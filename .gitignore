@@ -5,7 +5,7 @@
 ministream
 generator
 test_temel
-benchmark
+test_benchmark
 
 # dataset
 *.csv
