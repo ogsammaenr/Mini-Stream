@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MiniStream Laboratuvarı</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg: #121212; --card: #1e1e1e; --primary: #1db954; --text: #fff; --gray: #aaa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        
+        /* Navigasyon (Menü) */
+        nav { background: #000; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; }
+        nav h2 { margin: 0; color: var(--primary); }
+        .nav-links button { background: none; border: none; color: white; font-size: 16px; margin-left: 20px; cursor: pointer; transition: 0.2s; padding: 5px 10px; border-radius: 4px; }
+        .nav-links button:hover { background: #333; color: var(--primary); }
+        .nav-links button.active { background: var(--primary); color: #000; font-weight: bold; }
+
+        /* Sayfalar */
+        .page { display: none; max-width: 1400px; margin: 40px auto; padding: 30px; background: var(--card); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }        
+        .page.active { display: block; }
+        
+        /* Dinamik Formlar */
+        .case-row { display: flex; justify-content: space-between; align-items: flex-end; background: #2a2a2a; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid var(--primary); }
+        .input-group { display: flex; flex-direction: column; width: 25%; }
+        .input-group label { font-size: 12px; color: var(--gray); margin-bottom: 5px; }
+        .input-group input { padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 4px; }
+        .btn-remove { background: #e91e63; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        
+        /* Butonlar */
+        .btn-add { background: transparent; border: 2px dashed var(--gray); color: var(--gray); width: 100%; padding: 15px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        .btn-add:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-run { background: var(--primary); color: black; border: none; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .btn-run:hover { background: #1ed760; }
+        .btn-run:disabled { background: #555; cursor: not-allowed; }
+
+        /* Grafik ve Barlar */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; display: none; }
+        .chart-box { background: #252525; padding: 20px; border-radius: 8px; position: relative; min-height: 450px; }
+        .bars-box { background: #252525; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; }
+        
+        .bar-group { margin-bottom: 20px; }
+        .bar-title { margin-bottom: 5px; font-size: 14px; color: #bbb; display: flex; justify-content: space-between;}
+        .bar-bg { background: #111; border-radius: 4px; overflow: hidden; height: 25px; position: relative; }
+        .bar-fill { height: 100%; background: #e91e63; width: 0%; transition: width 0.5s ease-out; }
+        .bar-fill.good { background: var(--primary); }
+        .bar-fill.mid { background: #ff9800; }
+        
+        .status { text-align: center; margin-top: 15px; font-style: italic; color: #ffeb3b; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h2>🎧 MiniStream Dashboard</h2>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="showPage('home')">🏠 Ana Sayfa</button>
+            <button class="nav-btn" onclick="showPage('memory')">💾 Bellek Testi (RAM)</button>
+            <button class="nav-btn" onclick="showPage('speed')">🚀 Algoritma Hızı (CPU)</button>
+        </div>
+    </nav>
+
+    <div id="page-home" class="page active" style="text-align: center; padding: 60px 20px;">
+        <h1 style="font-size: 40px; color: var(--primary);">Sistemin Sınırlarını Zorlayın</h1>
+        <p style="font-size: 18px; color: var(--gray); max-width: 600px; margin: 0 auto; line-height: 1.6;">
+            MiniStream laboratuvarına hoş geldiniz. Yukarıdaki menüden Bellek veya Hız testini seçin.<br>
+            Birden fazla durumu (test senaryosunu) alt alta ekleyerek, veriler büyüdükçe algoritmaların 
+            nasıl tepki verdiğini canlı grafikler üzerinde izleyin.
+        </p>
+    </div>
+
+    <div id="page-memory" class="page">
+        <h2>💾 Çoklu Bellek Analizi (Kopya vs Pointer)</h2>
+        <p style="color: var(--gray); font-size: 14px;">Birden fazla test durumu ekleyip değişimi grafikte görün.</p>
+        
+        <div id="mem-cases"></div>
+        <button class="btn-add" onclick="addMemCase()">+ Yeni Durum Ekle</button>
+        <button class="btn-run" id="btn-run-mem" onclick="runAllMemory()">Tüm Durumları Çalıştır ve Analiz Et</button>
+        <div class="status" id="mem-status"></div>
+
+        <div class="dashboard-grid" id="mem-dashboard">
+            <div class="chart-box">
+                <canvas id="memChart"></canvas>
+            </div>
+            <div class="bars-box">
+                <h3 style="margin-top:0; color: var(--primary);">Son Durumun Canlı Çubukları</h3>
+                <div class="bar-group">
+                    <div class="bar-title"><span>Kopya Modeli (Rakip)</span> <span id="txt-mem-kopya">0 MB</span></div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-mem-kopya" style="width: 100%;"></div></div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar-title"><span>Pointer Modeli (Bizim)</span> <span id="txt-mem-pointer">0 MB</span></div>
+                    <div class="bar-bg"><div class="bar-fill good" id="bar-mem-pointer"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-speed" class="page">
+        <h2>🚀 Çoklu Arama Analizi (O(n) vs O(1))</h2>
+        <p style="color: var(--gray); font-size: 14px;">Veri seti büyüdükçe O(n) algoritmasının nasıl çöktüğünü, O(1)'in nasıl sabit kaldığını izleyin.</p>
+        
+        <div id="spd-cases"></div>
+        <button class="btn-add" onclick="addSpdCase()">+ Yeni Durum Ekle</button>
+        <button class="btn-run" id="btn-run-spd" onclick="runAllSpeed()">Tüm Durumları Çalıştır ve Analiz Et</button>
+        <div class="status" id="spd-status"></div>
+
+        <div class="dashboard-grid" id="spd-dashboard" style="grid-template-columns: 1.5fr 1fr;">
+            <div class="chart-box">
+                <canvas id="speedChart"></canvas>
+            </div>
+            <div class="bars-box">
+                <h3 style="margin-top:0; color: var(--primary);">Son Durumun Canlı Çubukları</h3>
+                <div class="bar-group">
+                    <div class="bar-title"><span>Linked List (O(n))</span> <span id="txt-spd-ll">0 ms</span></div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-spd-ll" style="width: 100%;"></div></div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar-title"><span>Chaining Map (O(1))</span> <span id="txt-spd-cmap">0 ms</span></div>
+                    <div class="bar-bg"><div class="bar-fill mid" id="bar-spd-cmap"></div></div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar-title"><span>Double Hash (O(1))</span> <span id="txt-spd-dmap">0 ms</span></div>
+                    <div class="bar-bg"><div class="bar-fill good" id="bar-spd-dmap"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let memChartInstance = null;
+        let spdChartInstance = null;
+
+        // Sayfa Değiştirme Mantığı (SPA)
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ==========================================
+        // BELLEK (RAM) BÖLÜMÜ
+        // ==========================================
+        function addMemCase(songs = 10000, lists = 5000) {
+            const div = document.createElement('div');
+            div.className = 'case-row mem-row';
+            div.innerHTML = `
+                <div class="input-group"><label>Şarkı Sayısı</label><input type="number" class="val-songs" value="${songs}"></div>
+                <div class="input-group"><label>Liste Sayısı</label><input type="number" class="val-lists" value="${lists}"></div>
+                <div class="input-group"><label>Liste Başı Şarkı</label><input type="number" class="val-per" value="50"></div>
+                <button class="btn-remove" onclick="this.parentElement.remove()">Sil</button>
+            `;
+            document.getElementById('mem-cases').appendChild(div);
+        }
+
+        async function runAllMemory() {
+            const rows = document.querySelectorAll('.mem-row');
+            if(rows.length === 0) return alert("En az 1 durum ekleyin!");
+            
+            document.getElementById('btn-run-mem').disabled = true;
+            document.getElementById('mem-dashboard').style.display = 'grid';
+            const status = document.getElementById('mem-status');
+            
+            let labels = []; let dataKopya = []; let dataPointer = [];
+
+            for(let i=0; i<rows.length; i++) {
+                const songs = rows[i].querySelector('.val-songs').value;
+                const lists = rows[i].querySelector('.val-lists').value;
+                const per = rows[i].querySelector('.val-per').value;
+                
+                status.innerText = `Durum ${i+1}/${rows.length} işleniyor (C Motoru çalışıyor)...`;
+                
+                try {
+                    const res = await fetch(`http://localhost:8765/benchmark?songs=${songs}&lists=${lists}&per_list=${per}`);
+                    const data = await res.json();
+                    
+                    const mbKopya = (data.kopya.toplam_byte / 1048576).toFixed(2);
+                    const mbPointer = (data.pointer.toplam_byte / 1048576).toFixed(2);
+                    
+                    labels.push(`${songs} Şarkı / ${lists} Liste`);
+                    dataKopya.push(mbKopya);
+                    dataPointer.push(mbPointer);
+
+                    // Canlı Barları Güncelle
+                    document.getElementById('txt-mem-kopya').innerText = mbKopya + " MB";
+                    document.getElementById('txt-mem-pointer').innerText = mbPointer + " MB";
+                    document.getElementById('bar-mem-pointer').style.width = Math.max((data.pointer.toplam_byte / data.kopya.toplam_byte) * 100, 1) + "%";
+                    
+                    updateMemChart(labels, dataKopya, dataPointer);
+                } catch(e) {
+                    alert("Sunucuya ulaşılamadı. Python çalışıyor mu?"); break;
+                }
+            }
+            status.innerText = "Tüm testler tamamlandı!";
+            document.getElementById('btn-run-mem').disabled = false;
+        }
+
+        function updateMemChart(labels, kopya, pointer) {
+            const ctx = document.getElementById('memChart').getContext('2d');
+            if(memChartInstance) memChartInstance.destroy();
+            memChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Kopya Modeli (MB)', data: kopya, borderColor: '#e91e63', backgroundColor: 'rgba(233,30,99,0.2)', fill: true, tension: 0.4 },
+                        { label: 'Pointer Modeli (MB)', data: pointer, borderColor: '#1db954', backgroundColor: 'rgba(29,185,84,0.2)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false,
+                    responsive: true, 
+                    plugins: { title: { display: true, color: '#fff', text: 'Veri Büyüdükçe RAM Tüketimi Eğilimi' } }, 
+                    scales: { y: { ticks: { color: '#aaa' } }, x: { ticks: { color: '#aaa' } } } 
+                }
+
+            });
+        }
+
+        // ==========================================
+        // ALGORİTMA HIZI (CPU) BÖLÜMÜ
+        // ==========================================
+        function addSpdCase(songs = 10000, queries = 1000) {
+            const div = document.createElement('div');
+            div.className = 'case-row spd-row';
+            div.innerHTML = `
+                <div class="input-group"><label>Şarkı Veritabanı (N)</label><input type="number" class="val-songs" value="${songs}"></div>
+                <div class="input-group"><label>Aranacak Sorgu Sayısı</label><input type="number" class="val-queries" value="${queries}"></div>
+                <button class="btn-remove" onclick="this.parentElement.remove()">Sil</button>
+            `;
+            document.getElementById('spd-cases').appendChild(div);
+        }
+
+        async function runAllSpeed() {
+            const rows = document.querySelectorAll('.spd-row');
+            if(rows.length === 0) return alert("En az 1 durum ekleyin!");
+            
+            document.getElementById('btn-run-spd').disabled = true;
+            document.getElementById('spd-dashboard').style.display = 'grid';
+            const status = document.getElementById('spd-status');
+            
+            let labels = []; let dataLL = []; let dataCmap = []; let dataDmap = [];
+
+            for(let i=0; i<rows.length; i++) {
+                const songs = rows[i].querySelector('.val-songs').value;
+                const queries = rows[i].querySelector('.val-queries').value;
+                
+                status.innerText = `Durum ${i+1}/${rows.length} işleniyor... (Büyük N değerlerinde Linked List yavaş çalışır, bekleyiniz)`;
+                
+                try {
+                    const res = await fetch(`http://localhost:8765/search?songs=${songs}&queries=${queries}`);
+                    const data = await res.json();
+                    
+                    labels.push(`${songs} N / ${queries} Sorgu`);
+                    dataLL.push(data.linked_list);
+                    dataCmap.push(data.chaining);
+                    dataDmap.push(data.double_hash);
+
+                    // Canlı Barları Güncelle
+                    document.getElementById('txt-spd-ll').innerText = data.linked_list.toFixed(2) + " ms";
+                    document.getElementById('txt-spd-cmap').innerText = data.chaining.toFixed(2) + " ms";
+                    document.getElementById('txt-spd-dmap').innerText = data.double_hash.toFixed(2) + " ms";
+                    
+                    document.getElementById('bar-spd-cmap').style.width = Math.max((data.chaining / data.linked_list) * 100, 1) + "%";
+                    document.getElementById('bar-spd-dmap').style.width = Math.max((data.double_hash / data.linked_list) * 100, 0.5) + "%";
+                    
+                    updateSpdChart(labels, dataLL, dataCmap, dataDmap);
+                } catch(e) {
+                    alert("Sunucuya ulaşılamadı!"); break;
+                }
+            }
+            status.innerText = "Tüm testler tamamlandı!";
+            document.getElementById('btn-run-spd').disabled = false;
+        }
+
+        function updateSpdChart(labels, ll, cmap, dmap) {
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            if(spdChartInstance) spdChartInstance.destroy();
+            spdChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Linked List O(n)', data: ll, borderColor: '#e91e63', backgroundColor: '#e91e63', tension: 0.1 },
+                        { label: 'Chaining Map O(1)', data: cmap, borderColor: '#ff9800', backgroundColor: '#ff9800', tension: 0.1 },
+                        { label: 'Double Hash O(1)', data: dmap, borderColor: '#1db954', backgroundColor: '#1db954', tension: 0.1 }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    responsive: true, 
+                    plugins: { title: { display: true, color: '#fff', text: 'İşlem Süresi (Milisaniye) - LOGARİTMİK ÖLÇEK' } }, 
+                    scales: { 
+                        y: { type: 'logarithmic', ticks: { color: '#aaa' } }, 
+                        x: { ticks: { color: '#aaa' } } 
+                    } 
+                }
+
+            });
+        }
+
+        // Başlangıçta birkaç örnek durum ekleyelim
+        addMemCase(10000, 1000);
+        addMemCase(20000, 5000);
+        addMemCase(50000, 10000);
+
+        addSpdCase(10000, 1000);
+        addSpdCase(50000, 5000);
+        addSpdCase(100000, 10000);
+    </script>
+</body>
+</html>

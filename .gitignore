@@ -1,0 +1,23 @@
+#C Derleme Çıktıları (Binary & Object)
+*.o
+*.so
+*.out
+ministream
+generator
+test_temel
+benchmark
+
+# dataset
+*.csv
+
+# Python Önbellek Dosyaları
+__pycache__/
+*.py[cod]
+*$py.class
+
+# İşletim Sistemi ve Editör Çöpleri
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
