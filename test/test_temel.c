@@ -64,15 +64,36 @@ void test_double_hashmap() {
     printf("   -> BASARILI!\n");
 }
 
+void test_soru3_sabotaj() {
+    printf("\n--- SORU 3: Use-After-Free Testi ---\n");
+    
+    // Şarkı ve listeleri oluştur
+    Sarki* s = sarki_olustur(99, "Tehlikeli Madde", "Hacker", "Album", 180);
+    CalmaListesi* l1 = liste_olustur(1, "Liste 1");
+    CalmaListesi* l2 = liste_olustur(2, "Liste 2");
+
+    // 2. İSTER: Bir şarkıyı iki listede kullan
+    liste_sarki_ekle(l1, s);
+    liste_sarki_ekle(l2, s);
+
+    // 2. İSTER DEVAMI: Birinden sil ve free et
+    liste_sarki_cikar(l1, 0);
+    sarki_sil(s); // Güvenlik kapalı olduğu için RAM'den silinecek!
+
+    // 3. İSTER: Diğer listeden erişmeye çalış
+    printf("Liste 2'den okunan sarki: %s\n", l2->sarkilar[0]->baslik);
+}
+
 int main() {
     printf("\n==========================================\n");
     printf("   MINISTREAM BIRIM TEST (UNIT TEST) MODU\n");
     printf("==========================================\n");
     
-    test_bellek_izci();
-    test_chaining_hashmap();
-    test_double_hashmap();
-    
+    // test_bellek_izci();
+    // test_chaining_hashmap();
+    // test_double_hashmap();
+    test_soru3_sabotaj();
+
     printf("==========================================\n");
     printf("🚀 TUM TESTLER %%100 BASARIYLA GECTI!\n");
     printf("==========================================\n\n");

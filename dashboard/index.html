@@ -62,12 +62,29 @@
     <div id="page-home" class="page active" style="text-align: center; padding: 60px 20px;">
         <h1 style="font-size: 40px; color: var(--primary);">Sistemin Sınırlarını Zorlayın</h1>
         <p style="font-size: 18px; color: var(--gray); max-width: 600px; margin: 0 auto; line-height: 1.6;">
-            MiniStream laboratuvarına hoş geldiniz. Yukarıdaki menüden Bellek veya Hız testini seçin.<br>
-            Birden fazla durumu (test senaryosunu) alt alta ekleyerek, veriler büyüdükçe algoritmaların 
+            MiniStream laboratuvarına hoş geldiniz. Aşağıdan bir test senaryosu seçin.<br>
+            Birden fazla durumu alt alta ekleyerek, veriler büyüdükçe algoritmaların 
             nasıl tepki verdiğini canlı grafikler üzerinde izleyin.
         </p>
-    </div>
 
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 40px;">
+            <button onclick="showPage('memory')" style="background: #252525; border: 2px solid var(--primary); color: white; padding: 20px 40px; font-size: 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; width: 300px;">
+                💾 Bellek Testi (RAM)<br>
+                <span style="font-size: 14px; color: var(--gray); font-weight: normal; margin-top: 10px; display: block;">Kopya vs Pointer Modeli</span>
+            </button>
+
+            <button onclick="showPage('speed')" style="background: #252525; border: 2px solid #ff9800; color: white; padding: 20px 40px; font-size: 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; width: 300px;">
+                🚀 Algoritma Hızı (CPU)<br>
+                <span style="font-size: 14px; color: var(--gray); font-weight: normal; margin-top: 10px; display: block;">O(n) vs O(1) Karşılaştırması</span>
+            </button>
+        </div>
+        
+        <style>
+            #page-home button:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+            #page-home button[onclick*="memory"]:hover { background: rgba(29, 185, 84, 0.1); }
+            #page-home button[onclick*="speed"]:hover { background: rgba(255, 152, 0, 0.1); }
+        </style>
+    </div>
     <div id="page-memory" class="page">
         <h2>💾 Çoklu Bellek Analizi (Kopya vs Pointer)</h2>
         <p style="color: var(--gray); font-size: 14px;">Birden fazla test durumu ekleyip değişimi grafikte görün.</p>
@@ -126,6 +143,7 @@
         </div>
     </div>
 
+
     <script>
         let memChartInstance = null;
         let spdChartInstance = null;
@@ -171,7 +189,9 @@
                 status.innerText = `Durum ${i+1}/${rows.length} işleniyor (C Motoru çalışıyor)...`;
                 
                 try {
-                    const res = await fetch(`http://localhost:8765/benchmark?songs=${songs}&lists=${lists}&per_list=${per}`);
+                    // YENİ SİSTEM: İstekler aynı sunucuya (port 3030) relatif olarak atılıyor
+                    const res = await fetch(`/api/benchmark?songs=${songs}&lists=${lists}&per_list=${per}`);
+                    if (!res.ok) throw new Error("API Hatası");
                     const data = await res.json();
                     
                     const mbKopya = (data.kopya.toplam_byte / 1048576).toFixed(2);
@@ -188,7 +208,9 @@
                     
                     updateMemChart(labels, dataKopya, dataPointer);
                 } catch(e) {
-                    alert("Sunucuya ulaşılamadı. Python çalışıyor mu?"); break;
+                    alert("Sunucuya ulaşılamadı. Python API endpoint'i (benchmark) hazır mı?"); 
+                    console.error(e);
+                    break;
                 }
             }
             status.innerText = "Tüm testler tamamlandı!";
@@ -213,7 +235,6 @@
                     plugins: { title: { display: true, color: '#fff', text: 'Veri Büyüdükçe RAM Tüketimi Eğilimi' } }, 
                     scales: { y: { ticks: { color: '#aaa' } }, x: { ticks: { color: '#aaa' } } } 
                 }
-
             });
         }
 
@@ -248,7 +269,9 @@
                 status.innerText = `Durum ${i+1}/${rows.length} işleniyor... (Büyük N değerlerinde Linked List yavaş çalışır, bekleyiniz)`;
                 
                 try {
-                    const res = await fetch(`http://localhost:8765/search?songs=${songs}&queries=${queries}`);
+                    // YENİ SİSTEM: API isteği
+                    const res = await fetch(`/api/search?songs=${songs}&queries=${queries}`);
+                    if (!res.ok) throw new Error("API Hatası");
                     const data = await res.json();
                     
                     labels.push(`${songs} N / ${queries} Sorgu`);
@@ -266,7 +289,9 @@
                     
                     updateSpdChart(labels, dataLL, dataCmap, dataDmap);
                 } catch(e) {
-                    alert("Sunucuya ulaşılamadı!"); break;
+                    alert("Sunucuya ulaşılamadı. Python API endpoint'i (search) hazır mı?"); 
+                    console.error(e);
+                    break;
                 }
             }
             status.innerText = "Tüm testler tamamlandı!";
@@ -295,7 +320,6 @@
                         x: { ticks: { color: '#aaa' } } 
                     } 
                 }
-
             });
         }
 

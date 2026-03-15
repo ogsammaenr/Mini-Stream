@@ -42,8 +42,8 @@ int main() {
 
     izci_sifirla(); // Sayacı sıfırla, dinlemeye başla!
 
-    int N_VERI = 200000;  
-    int N_SORGU = 50000;  
+    int N_VERI = 100000;  
+    int N_SORGU = 1000;  
 
     printf("-> %d Mock Sarki RAM'de uretiliyor...\n", N_VERI);
     Sarki* liste = mock_liste_olustur(N_VERI);

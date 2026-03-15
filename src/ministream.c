@@ -30,14 +30,14 @@ Sarki* sarki_olustur(int id, const char* baslik, const char* sanatci, const char
     return s;
 }
 
-// 2. Şarkı Silme Güvenlik Kontrollü [cite: 180, 918-925]
+// 2. Şarkı Silme Güvenlik Kontrollü
 int sarki_sil(Sarki* sarki) {
-    if (!sarki) return -1;
-    // Eğer şarkı hala bir yerlerde çalma listesindeyse SİLMEYİ REDDET!
-    if (sarki->ref_sayisi > 0) {
-        printf("UYARI: '%s' hala %d listede kullaniliyor!\n", sarki->baslik, sarki->ref_sayisi);
-        return -1;
-    }
+    // if (!sarki) return -1;
+    // // Eğer şarkı hala bir yerlerde çalma listesindeyse SİLMEYİ REDDET!
+    // if (sarki->ref_sayisi > 0) {
+    //     printf("UYARI: '%s' hala %d listede kullaniliyor!\n", sarki->baslik, sarki->ref_sayisi);
+    //     return -1;
+    // }
     izlened_free(sarki, sizeof(Sarki));
     return 0;
 }
@@ -208,7 +208,7 @@ const char* arama_json(int n_sarki, int n_sorgu) {
     static char json_buffer[1024];
     int toplam_sarki = 0;
     // DİKKAT: Kaggle veri setinin yolu sende sarkilar.csv ise burayı ona göre güncelle
-    const char* path = "data/tracks_features.csv"; 
+    const char* path = "data/generated_tracks.csv"; 
 
     int* sorgular = (int*)izlenen_malloc(n_sorgu * sizeof(int));
     for(int i = 0; i < n_sorgu; i++) sorgular[i] = rand() % n_sarki; 

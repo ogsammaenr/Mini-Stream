@@ -3,12 +3,9 @@
 *.so
 *.out
 ministream
+ministream.so
 generator
-test_temel
-test_benchmark
-
-# dataset
-*.csv
+test_*
 
 # Python Önbellek Dosyaları
 __pycache__/
