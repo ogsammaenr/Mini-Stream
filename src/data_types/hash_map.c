@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// 1. Boş bir tablo oluştur [cite: 866-869]
+// 1. Boş bir tablo oluştur 
 HashMap* hashmap_olustur(void) {
     HashMap* map = (HashMap*)izlenen_malloc(sizeof(HashMap));
     for (int i = 0; i < TABLO_BOYUTU; i++) {
@@ -12,12 +12,12 @@ HashMap* hashmap_olustur(void) {
     return map;
 }
 
-// 2. Basit Modulo Hash [cite: 856-858]
+// 2. Basit Modulo Hash 
 int hash_fonk(int id) {
     return id % TABLO_BOYUTU;
 }
 
-// 3. Chaining ile Ekleme [cite: 871-876]
+// 3. Chaining ile Ekleme
 void hashmap_ekle(HashMap* map, Sarki* sarki) {
     int idx = hash_fonk(sarki->id);
     
@@ -26,7 +26,7 @@ void hashmap_ekle(HashMap* map, Sarki* sarki) {
     map->kovalar[idx] = sarki;
 }
 
-// 4. Arama Operasyonu [cite: 859-863]
+// 4. Arama Operasyonu 
 Sarki* sarki_ara_map(HashMap* map, int id) {
     int idx = hash_fonk(id);
     Sarki* curr = map->kovalar[idx];

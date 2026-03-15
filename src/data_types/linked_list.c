@@ -13,7 +13,7 @@ Sarki* sarki_ara_liste(Sarki* bas, int id) {
     return NULL;
 }
 
-// 2. Benchmark için Sahte Veri Üretici [cite: 185]
+// 2. Benchmark için Sahte Veri Üretici 
 Sarki* veri_uret_liste(int n) {
     Sarki* bas = NULL;
     for (int i = 0; i < n; i++) {
@@ -30,7 +30,7 @@ Sarki* veri_uret_liste(int n) {
     return bas;
 }
 
-// 3. Benchmark Sonrası Temizlik [cite: 185]
+// 3. Benchmark Sonrası Temizlik 
 void liste_temizle_hepsi(Sarki* bas) {
     Sarki* curr = bas;
     while (curr != NULL) {

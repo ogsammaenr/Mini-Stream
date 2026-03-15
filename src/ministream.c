@@ -13,7 +13,7 @@ double ms_olc(struct timespec t1, struct timespec t2) {
     return (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_nsec - t1.tv_nsec) / 1e6;
 }
 
-// 1. Şarkı Oluşturma [cite: 180]
+// 1. Şarkı Oluşturma 
 Sarki* sarki_olustur(int id, const char* baslik, const char* sanatci, const char* album, int sure) {
     Sarki* s = (Sarki*)izlenen_malloc(sizeof(Sarki));
     if (!s) return NULL;
@@ -24,7 +24,7 @@ Sarki* sarki_olustur(int id, const char* baslik, const char* sanatci, const char
     strncpy(s->album, album, 99); s->album[99] = '\0';
     s->sure_sn = sure;
     s->yil = 2000; // Varsayılan veya parametre eklenebilir
-    s->ref_sayisi = 0; // Başlangıçta hiçbir listede yok [cite: 180]
+    s->ref_sayisi = 0; // Başlangıçta hiçbir listede yok
     s->sonraki = NULL;
     
     return s;
@@ -42,7 +42,7 @@ int sarki_sil(Sarki* sarki) {
     return 0;
 }
 
-// 3. Çalma Listesi Oluşturma (Dinamik) [cite: 180]
+// 3. Çalma Listesi Oluşturma (Dinamik) 
 CalmaListesi* liste_olustur(int id, const char* isim) {
     CalmaListesi* liste = (CalmaListesi*)izlenen_malloc(sizeof(CalmaListesi));
     if (!liste) return NULL;
@@ -50,7 +50,7 @@ CalmaListesi* liste_olustur(int id, const char* isim) {
     liste->id = id;
     strncpy(liste->isim, isim, 49); liste->isim[49] = '\0';
     liste->sarki_sayisi = 0;
-    liste->kapasite = 10; // Başlangıç kapasitesi [cite: 180]
+    liste->kapasite = 10; // Başlangıç kapasitesi
     
     // Şarkı adreslerini tutacak olan DİZİYİ (Sarki**) heap'te oluşturuyoruz
     liste->sarkilar = (Sarki**)izlenen_malloc(liste->kapasite * sizeof(Sarki*));
@@ -58,37 +58,37 @@ CalmaListesi* liste_olustur(int id, const char* isim) {
     return liste;
 }
 
-// 4. Listeye Şarkı Ekleme (Realloc Mantığı) [cite: 180, 906-917]
+// 4. Listeye Şarkı Ekleme (Realloc Mantığı)
 int liste_sarki_ekle(CalmaListesi* liste, Sarki* sarki) {
     if (!liste || !sarki) return -1;
     
-    // Kapasite dolduysa diziyi 2 katına çıkar [cite: 907-909]
+    // Kapasite dolduysa diziyi 2 katına çıkar 
     if (liste->sarki_sayisi >= liste->kapasite) {
         liste->kapasite *= 2;
-        // NOT: realloc'u izlenen_malloc ile sarmalamadığımız için standart realloc kullanıyoruz [cite: 531]
+        // NOT: realloc'u izlenen_malloc ile sarmalamadığımız için standart realloc kullanıyoruz 
         liste->sarkilar = realloc(liste->sarkilar, liste->kapasite * sizeof(Sarki*));
         if (!liste->sarkilar) return -1;
     }
     
-    liste->sarkilar[liste->sarki_sayisi++] = sarki; // Şarkının ADRESİNİ ekle [cite: 915]
+    liste->sarkilar[liste->sarki_sayisi++] = sarki; // Şarkının ADRESİNİ ekle
     sarki->ref_sayisi++; // Şarkının kullanım sayısını artır 
     
     return 0;
 }
 
-// 5. Listeden Şarkı Çıkarma (Swap Mantığı) [cite: 181, 1136-1138]
+// 5. Listeden Şarkı Çıkarma (Swap Mantığı) 
 void liste_sarki_cikar(CalmaListesi* liste, int idx) {
     if (!liste || idx < 0 || idx >= liste->sarki_sayisi) return;
     
-    // 1. Şarkının referansını azalt [cite: 1137]
+    // 1. Şarkının referansını azalt 
     liste->sarkilar[idx]->ref_sayisi--;
     
-    // 2. Dizide boşluk kalmaması için en sondaki elemanı silinen yere taşı (Swap) [cite: 1138]
+    // 2. Dizide boşluk kalmaması için en sondaki elemanı silinen yere taşı (Swap) 
     liste->sarki_sayisi--;
     liste->sarkilar[idx] = liste->sarkilar[liste->sarki_sayisi]; 
 }
 
-// 6. Listeyi Tamamen Temizleme [cite: 181]
+// 6. Listeyi Tamamen Temizleme 
 void liste_temizle(CalmaListesi* liste) {
     if (!liste) return;
     

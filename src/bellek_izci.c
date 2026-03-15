@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include "bellek_izci.h"
 
-static BellekIzci izci = {0}; // Başlangıçta her şey sıfır [cite: 480]
+static BellekIzci izci = {0}; // Başlangıçta her şey sıfır 
 
 void* izlenen_malloc(size_t boyut) {
-    void* ptr = malloc(boyut); // Gerçek malloc burada çağrılır [cite: 482]
+    void* ptr = malloc(boyut); // Gerçek malloc burada çağrılır
     if (ptr) {
         izci.toplam_ayrildi += boyut; 
         izci.malloc_sayisi++; 
@@ -14,7 +14,7 @@ void* izlenen_malloc(size_t boyut) {
 
 void izlened_free(void* ptr, size_t boyut) {
     if (ptr) {
-        free(ptr); // Gerçek free burada çağrılır [cite: 490]
+        free(ptr); // Gerçek free burada çağrılır
         izci.toplam_serbest += boyut;
         izci.free_sayisi++; 
     }
