@@ -109,7 +109,7 @@ Yapılan bu sabotaj testi sonucunda Valgrind, programda tam 26 adet bellek ihlal
 
 ## Soru 4 — Bu sistemi 10x büyütsek ne değişirdi?
 
-### İstenen: Hesabı yap
+### İstenen Hesap:
 "500.000 -> 5.000.000 kullanıcı demek:
 
 * **Pointer dizileri:** **~40 GB**

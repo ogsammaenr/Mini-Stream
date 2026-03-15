@@ -9,6 +9,8 @@ MiniStream, devasa veri setlerini (milyonlarca şarkı ve çalma listesi) milisa
 
 Proje, düşük seviyeli (low-level) bellek yönetimi algoritmalarını modern bir **Python Web Dashboard** ile birleştirerek uçtan uca (Full-Stack) bir sistem mühendisliği çözümü sunar.
 
+👉 **[Sistem Mimari ve Tasarım Raporunu (RAPOR.md) Okumak İçin Tıklayın](rapor/RAPOR.md)**
+
 ---
 
 ## 🚀 Temel Mimari ve Özellikler
