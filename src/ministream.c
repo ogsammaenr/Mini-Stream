@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include <omp.h>
+#include <ctype.h>
 #include "ministream.h"
 #include "bellek_izci.h"
 #include "data_types/hash_map.h"
@@ -32,12 +33,12 @@ Sarki* sarki_olustur(int id, const char* baslik, const char* sanatci, const char
 
 // 2. Şarkı Silme Güvenlik Kontrollü
 int sarki_sil(Sarki* sarki) {
-    // if (!sarki) return -1;
-    // // Eğer şarkı hala bir yerlerde çalma listesindeyse SİLMEYİ REDDET!
-    // if (sarki->ref_sayisi > 0) {
-    //     printf("UYARI: '%s' hala %d listede kullaniliyor!\n", sarki->baslik, sarki->ref_sayisi);
-    //     return -1;
-    // }
+    if (!sarki) return -1;
+    // Eğer şarkı hala bir yerlerde çalma listesindeyse SİLMEYİ REDDET!
+    if (sarki->ref_sayisi > 0) {
+        printf("UYARI: '%s' hala %d listede kullaniliyor!\n", sarki->baslik, sarki->ref_sayisi);
+        return -1;
+    }
     izlened_free(sarki, sizeof(Sarki));
     return 0;
 }
@@ -207,7 +208,7 @@ const char* deney_json(int n_sarki, int n_liste, int sarki_per_liste) {
 const char* arama_json(int n_sarki, int n_sorgu) {
     static char json_buffer[1024];
     int toplam_sarki = 0;
-    // DİKKAT: Kaggle veri setinin yolu sende sarkilar.csv ise burayı ona göre güncelle
+
     const char* path = "data/generated_tracks.csv"; 
 
     int* sorgular = (int*)izlenen_malloc(n_sorgu * sizeof(int));
@@ -291,4 +292,196 @@ const char* arama_json(int n_sarki, int n_sorgu) {
     );
 
     return json_buffer;
+}
+
+
+// Küçük/Büyük harf duyarsız arama yapmak için yardımcı fonksiyon 
+void kucuk_harfe_cevir(char* kopya, const char* orijinal) {
+    for(int i = 0; orijinal[i]; i++){
+        kopya[i] = tolower((unsigned char)orijinal[i]);
+    }
+    kopya[strlen(orijinal)] = '\0';
+}
+
+
+// =========================================================
+// IN-MEMORY VERİTABANI: KALICI RAM YÖNETİMİ
+// =========================================================
+
+// Şarkıları tutacak Global (Kalıcı) Pointer Dizisi
+static Sarki** global_sarki_dizisi = NULL;
+static int global_toplam_sarki = 0;
+
+// Sunucu başladığında veya ilk istekte veriyi RAM'e GÖMEN fonksiyon
+void veritabani_baslat() {
+    if (global_sarki_dizisi != NULL) {
+        return; // Zaten RAM'e yüklendiyse tekrar yükleme
+    }
+
+    printf("\n[C MOTORU - IN MEMORY] 1.2 Milyon kayit RAM'e cekiliyor (Lutfen bekleyin)...\n");
+    
+    // Gerçek CSV verisini RAM'e Linked List olarak al
+    Sarki* liste_basi = csv_yukle("data/generated_tracks.csv", 1200000, &global_toplam_sarki);
+    
+    if (!liste_basi) {
+        printf("❌ HATA: Veritabani (CSV) bulunamadi!\n");
+        return;
+    }
+
+    // OpenMP'nin çok hızlı (O(1)) erişebilmesi için Linked List'i Pointer Dizisine çevir
+    global_sarki_dizisi = (Sarki**)izlenen_malloc(global_toplam_sarki * sizeof(Sarki*));
+    
+    Sarki* gecici = liste_basi;
+    for (int i = 0; i < global_toplam_sarki; i++) {
+        global_sarki_dizisi[i] = gecici;
+        // Şarkıların silinmemesi için referansını 1 yapıyoruz (Havuz Referansı)
+        gecici->ref_sayisi = 1; 
+        gecici = gecici->sonraki;
+    }
+
+    printf("[C MOTORU - HAZIR] %d sarki basariyla RAM'e indekslendi!\n", global_toplam_sarki);
+}
+
+// =========================================================
+// YENİDEN DÜZENLENMİŞ: SIFIR DISK I/O İLE ARAMA
+// =========================================================
+
+static char k_arama_json_cevap[1024 * 50]; 
+
+const char* c_motoru_kismi_arama(const char* aranacak_kelime, int sayfa_no, int sayfa_boyutu) {
+    if (global_sarki_dizisi == NULL) veritabani_baslat();
+
+    printf("\n[C MOTORU - OPENMP] '%s' araniyor (Sayfa: %d)...\n", aranacak_kelime, sayfa_no);
+    
+    char aranan_kucuk[256];
+    kucuk_harfe_cevir(aranan_kucuk, aranacak_kelime);
+
+    // 1. ZEKİCE TAKTİK: Paralel arama için "Eşleşme Haritası" (Boolean Array) oluşturuyoruz.
+    // Calloc kullandık ki anlık arama belleği tracker'ımızı (izleyiciyi) meşgul etmesin.
+    char* eslesmeler = (char*)calloc(global_toplam_sarki, sizeof(char));
+
+    // Çekirdekleri ateşle ve sadece haritayı işaretle (Çok hızlıdır <10ms)
+    #pragma omp parallel for
+    for (int i = 0; i < global_toplam_sarki; i++) { 
+        Sarki* s = global_sarki_dizisi[i];
+        char baslik_kucuk[256], sanatci_kucuk[256];
+        kucuk_harfe_cevir(baslik_kucuk, s->baslik);
+        kucuk_harfe_cevir(sanatci_kucuk, s->sanatci);
+
+        if (strstr(baslik_kucuk, aranan_kucuk) || strstr(sanatci_kucuk, aranan_kucuk)) {
+            eslesmeler[i] = 1; // Şarkı eşleşti!
+        }
+    }
+
+    // 2. SAYFALAMA: İstenen sayfa aralığını hesapla
+    strcpy(k_arama_json_cevap, "[");
+    int baslangic_hedefi = (sayfa_no - 1) * sayfa_boyutu;
+    int bitis_hedefi = baslangic_hedefi + sayfa_boyutu;
+
+    int toplam_bulunan = 0;
+    int json_eklenen = 0;
+
+    // Haritayı sırayla oku (Sıralamanın bozulmaması için ardışık döngü)
+    for (int i = 0; i < global_toplam_sarki; i++) {
+        if (eslesmeler[i] == 1) {
+            // Eğer sayfamızın aralığındaysak JSON'a ekle
+            if (toplam_bulunan >= baslangic_hedefi && toplam_bulunan < bitis_hedefi) {
+                Sarki* s = global_sarki_dizisi[i];
+                char temp_json[512];
+                sprintf(temp_json, 
+                    "%s{"
+                    "\"id\": \"%d\","
+                    "\"title\": \"%s\","
+                    "\"artist\": \"%s\","
+                    "\"duration_ms\": %d,"
+                    "\"release_date\": \"%d\""
+                    "}", 
+                    (json_eklenen > 0 ? "," : ""), s->id, s->baslik, s->sanatci, s->sure_sn * 1000, s->yil);
+                
+                strcat(k_arama_json_cevap, temp_json);
+                json_eklenen++;
+            }
+            toplam_bulunan++;
+            if (toplam_bulunan >= bitis_hedefi) break; // Sayfa dolduysa gerisine bakmaya gerek yok!
+        }
+    }
+
+    strcat(k_arama_json_cevap, "]");
+    free(eslesmeler); // Çöpü temizle
+
+    printf("          -> RAM Taramasi Bitti. Eslesti: %d | Gosterilen: %d - %d\n", toplam_bulunan, baslangic_hedefi, baslangic_hedefi + json_eklenen);
+    
+    return k_arama_json_cevap;
+}
+
+
+// Sayfalama için özel JSON buffer (100-200 kayıt sığacak kadar)
+static char sayfa_json_cevap[1024 * 100];
+
+const char* c_motoru_sayfa_getir(int sayfa_no, int sayfa_boyutu) {
+    // RAM'de veri yoksa yükle
+    if (global_sarki_dizisi == NULL) {
+        veritabani_baslat();
+    }
+
+    strcpy(sayfa_json_cevap, "[");
+    
+    // Dizideki başlangıç ve bitiş indekslerini hesapla (Örn: 2. sayfa 100'lük boyut -> 100'den 200'e kadar)
+    int baslangic = (sayfa_no - 1) * sayfa_boyutu;
+    int bitis = baslangic + sayfa_boyutu;
+    
+    // Sınır kontrolleri (Out of bounds hatalarını önlemek için)
+    if (baslangic < 0) baslangic = 0;
+    if (bitis > global_toplam_sarki) bitis = global_toplam_sarki;
+    if (baslangic >= global_toplam_sarki) {
+        return "[]"; // Sayfa sınırı aşıldıysa boş dizi dön
+    }
+
+    int eklenen = 0;
+    for (int i = baslangic; i < bitis; i++) {
+        Sarki* s = global_sarki_dizisi[i]; // Doğrudan RAM'den O(1) okuma!
+        
+        char temp_json[512];
+        sprintf(temp_json, 
+            "%s{"
+            "\"id\": \"%d\","
+            "\"title\": \"%s\","
+            "\"artist\": \"%s\","
+            "\"duration_ms\": %d,"
+            "\"release_date\": \"%d\""
+            "}", 
+            (eklenen > 0 ? "," : ""), s->id, s->baslik, s->sanatci, s->sure_sn * 1000, s->yil);
+        
+        strcat(sayfa_json_cevap, temp_json);
+        eklenen++;
+    }
+    
+    strcat(sayfa_json_cevap, "]");
+    return sayfa_json_cevap;
+}
+
+
+// =========================================================
+// POINTER KÖPRÜSÜ: PYTHON İÇİN RAM ADRESİ DÖNDÜRÜCÜ
+// =========================================================
+void* c_motoru_sarki_pointer_getir(int sarki_id) {
+    if (global_sarki_dizisi == NULL) return NULL;
+    
+    // O(1) Hızlı Erişim: Senin veritabanında ID'ler genellikle index numarasıyla aynı gidiyor.
+    // Eğer istenen ID ile dizideki o sıradaki şarkının ID'si eşleşiyorsa aramadan direkt adresi ver!
+    if (sarki_id >= 0 && sarki_id < global_toplam_sarki) {
+        if (global_sarki_dizisi[sarki_id]->id == sarki_id) {
+            return global_sarki_dizisi[sarki_id]; // Şipşak O(1) bulma!
+        }
+    }
+    
+    // Eğer sıralama bir şekilde kaymışsa (Güvenlik), OpenMP ile paralel olarak bul:
+    void* bulunan_adres = NULL;
+    #pragma omp parallel for
+    for (int i = 0; i < global_toplam_sarki; i++) {
+        if (global_sarki_dizisi[i]->id == sarki_id) {
+            bulunan_adres = global_sarki_dizisi[i];
+        }
+    }
+    return bulunan_adres;
 }

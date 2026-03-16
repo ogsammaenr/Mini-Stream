@@ -5,93 +5,166 @@
     <title>MiniStream Laboratuvarı</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #121212; --card: #1e1e1e; --primary: #1db954; --text: #fff; --gray: #aaa; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        :root { --bg: #0a0a0a; --card: #161616; --primary: #1db954; --text: #fff; --gray: #a7a7a7; --border: #2a2a2a; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         
-        /* Navigasyon (Menü) */
-        nav { background: #000; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; }
-        nav h2 { margin: 0; color: var(--primary); }
-        .nav-links button { background: none; border: none; color: white; font-size: 16px; margin-left: 20px; cursor: pointer; transition: 0.2s; padding: 5px 10px; border-radius: 4px; }
-        .nav-links button:hover { background: #333; color: var(--primary); }
-        .nav-links button.active { background: var(--primary); color: #000; font-weight: bold; }
+        /* Navigasyon (Menü) - Modernize edildi */
+        nav { background: #000; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        nav h2 { margin: 0; color: var(--primary); font-weight: 700; letter-spacing: -0.5px; }
+        .nav-links button { background: none; border: none; color: var(--gray); font-size: 15px; margin-left: 20px; cursor: pointer; transition: 0.2s; padding: 8px 16px; border-radius: 20px; font-weight: 500; }
+        .nav-links button:hover { color: var(--text); }
+        .nav-links button.active { background: #333; color: var(--text); }
 
         /* Sayfalar */
-        .page { display: none; max-width: 1400px; margin: 40px auto; padding: 30px; background: var(--card); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }        
+        .page { display: none; max-width: 1400px; margin: 40px auto; padding: 40px; background: var(--card); border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6); border: 1px solid var(--border); }        
         .page.active { display: block; }
         
         /* Dinamik Formlar */
-        .case-row { display: flex; justify-content: space-between; align-items: flex-end; background: #2a2a2a; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid var(--primary); }
+        .case-row { display: flex; justify-content: space-between; align-items: flex-end; background: #222; padding: 20px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
         .input-group { display: flex; flex-direction: column; width: 25%; }
-        .input-group label { font-size: 12px; color: var(--gray); margin-bottom: 5px; }
-        .input-group input { padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 4px; }
-        .btn-remove { background: #e91e63; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .input-group label { font-size: 13px; color: var(--gray); margin-bottom: 8px; font-weight: 500; }
+        .input-group input { padding: 10px 12px; background: #111; border: 1px solid #333; color: white; border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; }
+        .input-group input:focus { border-color: var(--primary); }
+        .btn-remove { background: rgba(233, 30, 99, 0.1); color: #e91e63; border: 1px solid rgba(233, 30, 99, 0.3); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-remove:hover { background: #e91e63; color: white; }
         
         /* Butonlar */
-        .btn-add { background: transparent; border: 2px dashed var(--gray); color: var(--gray); width: 100%; padding: 15px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
-        .btn-add:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-run { background: var(--primary); color: black; border: none; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .btn-run:hover { background: #1ed760; }
-        .btn-run:disabled { background: #555; cursor: not-allowed; }
+        .btn-add { background: transparent; border: 2px dashed #444; color: var(--gray); width: 100%; padding: 15px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-bottom: 25px; transition: 0.3s; font-weight: 500; }
+        .btn-add:hover { border-color: var(--primary); color: var(--primary); background: rgba(29, 185, 84, 0.05); }
+        .btn-run { background: var(--primary); color: black; border: none; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: transform 0.1s, background 0.3s; letter-spacing: 0.5px; }
+        .btn-run:hover { background: #1ed760; transform: scale(1.02); }
+        .btn-run:active { transform: scale(0.98); }
+        .btn-run:disabled { background: #444; color: #888; cursor: not-allowed; transform: none; }
 
         /* Grafik ve Barlar */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; display: none; }
-        .chart-box { background: #252525; padding: 20px; border-radius: 8px; position: relative; min-height: 450px; }
-        .bars-box { background: #252525; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; display: none; }
+        .chart-box { background: #222; padding: 25px; border-radius: 12px; position: relative; min-height: 450px; border: 1px solid var(--border); }
+        .bars-box { background: #222; padding: 25px; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--border); }
         
-        .bar-group { margin-bottom: 20px; }
-        .bar-title { margin-bottom: 5px; font-size: 14px; color: #bbb; display: flex; justify-content: space-between;}
-        .bar-bg { background: #111; border-radius: 4px; overflow: hidden; height: 25px; position: relative; }
-        .bar-fill { height: 100%; background: #e91e63; width: 0%; transition: width 0.5s ease-out; }
+        .bar-group { margin-bottom: 25px; }
+        .bar-title { margin-bottom: 8px; font-size: 14px; color: var(--gray); display: flex; justify-content: space-between; font-weight: 500; }
+        .bar-title span:last-child { color: var(--text); font-family: monospace; font-size: 15px; }
+        .bar-bg { background: #111; border-radius: 6px; overflow: hidden; height: 28px; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .bar-fill { height: 100%; background: #e91e63; width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .bar-fill.good { background: var(--primary); }
         .bar-fill.mid { background: #ff9800; }
         
-        .status { text-align: center; margin-top: 15px; font-style: italic; color: #ffeb3b; }
+        .status { text-align: center; margin-top: 20px; font-size: 15px; color: #ffeb3b; background: rgba(255, 235, 59, 0.1); padding: 12px; border-radius: 8px; display: none; }
+
+        /* ==========================================
+           PLAYLIST YÖNETİCİSİ (YENİLENMİŞ)
+           ========================================== */
+        
+        /* Container yüksekliği dinamikleştirildi (Eski 550px sınırı kalktı) */
+        .playlist-container { display: flex; gap: 25px; min-height: 70vh; margin-top: 30px; }
+        
+        .playlist-left { flex: 3; background: #222; padding: 25px; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid var(--border); }
+        .playlist-right { flex: 7; background: #222; padding: 25px; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid var(--border); }
+        
+        /* Scrollbar Özelleştirmesi (Spotify Tarzı) */
+        .custom-scroll { overflow-y: auto; padding-right: 15px; }
+        .custom-scroll::-webkit-scrollbar { width: 10px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; border: 3px solid #222; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        /* Sağ Taraf - Şarkı Listesi */
+        .songs-scroll-box { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        
+        .song-item { display: flex; justify-content: space-between; align-items: center; background: #181818; padding: 15px 20px; border-radius: 8px; transition: 0.2s; border: 1px solid transparent; }
+        .song-item:hover { background: #282828; border-color: #333; }
+        
+        .song-info { display: flex; flex-direction: column; gap: 4px; }
+        .song-info strong { font-size: 16px; color: var(--text); font-weight: 600; }
+        .song-info span { font-size: 13px; color: var(--gray); display: flex; gap: 15px; }
+        .song-info span i { font-style: normal; color: #888; }
+        
+        .btn-add-song { background: transparent; color: var(--text); border: 1px solid #555; padding: 8px 18px; border-radius: 20px; cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: bold; }
+        .btn-add-song:hover { border-color: var(--text); transform: scale(1.05); }
+
+        /* Arama ve Sayfalama Barı */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #181818; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        
+        .pagination-controls { display: flex; gap: 15px; align-items: center; }
+        .btn-page { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .btn-page:hover { background: #444; }
+        
+        .search-input { width: 300px; padding: 10px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; outline: none; font-size: 14px; transition: 0.2s; }
+        .search-input:focus { border-color: var(--primary); background: #2a2a2a; width: 350px; }
+
+        /* Sol Taraf - Akordeon */
+        .acc-item { background: #181818; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid transparent; transition: 0.2s; }
+        .acc-item:hover { border-color: #333; }
+        
+        .acc-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; transition: 0.2s; }
+        .acc-header.active { color: var(--primary); border-bottom: 1px solid #222; }
+        
+        .acc-content { display: none; padding: 0 20px 20px 20px; max-height: 40vh; }
+        .acc-content.active { display: block; }
+        
+        .playlist-song-row { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #2a2a2a; }
+        .playlist-song-row:last-child { border-bottom: none; }
+        .playlist-song-row .s-title { font-size: 14px; color: var(--text); }
+        .playlist-song-row .s-artist { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
     </style>
 </head>
 <body>
 
     <nav>
-        <h2>🎧 MiniStream Dashboard</h2>
+        <h2>🎧 MiniStream</h2>
         <div class="nav-links">
             <button class="nav-btn active" onclick="showPage('home')">🏠 Ana Sayfa</button>
-            <button class="nav-btn" onclick="showPage('memory')">💾 Bellek Testi (RAM)</button>
-            <button class="nav-btn" onclick="showPage('speed')">🚀 Algoritma Hızı (CPU)</button>
+            <button class="nav-btn" onclick="showPage('memory')">💾 RAM Testi</button>
+            <button class="nav-btn" onclick="showPage('speed')">🚀 CPU Testi</button>
+            <button class="nav-btn" onclick="showPage('playlists')">🎵 Yöneticisi</button>
         </div>
     </nav>
 
-    <div id="page-home" class="page active" style="text-align: center; padding: 60px 20px;">
-        <h1 style="font-size: 40px; color: var(--primary);">Sistemin Sınırlarını Zorlayın</h1>
-        <p style="font-size: 18px; color: var(--gray); max-width: 600px; margin: 0 auto; line-height: 1.6;">
-            MiniStream laboratuvarına hoş geldiniz. Aşağıdan bir test senaryosu seçin.<br>
-            Birden fazla durumu alt alta ekleyerek, veriler büyüdükçe algoritmaların 
-            nasıl tepki verdiğini canlı grafikler üzerinde izleyin.
+    <div id="page-home" class="page active" style="text-align: center; padding: 80px 20px; border: none; background: transparent; box-shadow: none;">
+        <h1 style="font-size: 48px; color: var(--text); margin-bottom: 15px; font-weight: 800; letter-spacing: -1px;">Sistemin Sınırlarını <span style="color: var(--primary);">Zorlayın</span></h1>
+        <p style="font-size: 18px; color: var(--gray); max-width: 650px; margin: 0 auto; line-height: 1.6;">
+            MiniStream In-Memory Database laboratuvarına hoş geldiniz. <br>
+            C motorunun gücünü test etmek için aşağıdan bir senaryo seçin.
         </p>
 
-        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 40px;">
-            <button onclick="showPage('memory')" style="background: #252525; border: 2px solid var(--primary); color: white; padding: 20px 40px; font-size: 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; width: 300px;">
-                💾 Bellek Testi (RAM)<br>
-                <span style="font-size: 14px; color: var(--gray); font-weight: normal; margin-top: 10px; display: block;">Kopya vs Pointer Modeli</span>
+        <div style="display: flex; justify-content: center; gap: 25px; margin-top: 50px; flex-wrap: wrap;">
+            
+            <button onclick="showPage('memory')" style="background: #181818; border: 1px solid #333; color: white; padding: 25px 30px; border-radius: 12px; cursor: pointer; transition: 0.3s; width: 280px; text-align: left; position: relative; overflow: hidden;">
+                <div style="font-size: 30px; margin-bottom: 15px;">💾</div>
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Bellek Analizi (RAM)</div>
+                <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">Zero-Copy pointer modeli ile klasik kopyalama yönteminin RAM tüketimini karşılaştırın.</div>
             </button>
 
-            <button onclick="showPage('speed')" style="background: #252525; border: 2px solid #ff9800; color: white; padding: 20px 40px; font-size: 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; width: 300px;">
-                🚀 Algoritma Hızı (CPU)<br>
-                <span style="font-size: 14px; color: var(--gray); font-weight: normal; margin-top: 10px; display: block;">O(n) vs O(1) Karşılaştırması</span>
+            <button onclick="showPage('speed')" style="background: #181818; border: 1px solid #333; color: white; padding: 25px 30px; border-radius: 12px; cursor: pointer; transition: 0.3s; width: 280px; text-align: left;">
+                <div style="font-size: 30px; margin-bottom: 15px;">🚀</div>
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Algoritma Hızı (CPU)</div>
+                <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">Multithread OpenMP destekli O(1) Double Hash ile geleneksel O(n) taramasını yarıştırın.</div>
             </button>
+
+            <button onclick="showPage('playlists')" style="background: #181818; border: 1px solid #333; color: white; padding: 25px 30px; border-radius: 12px; cursor: pointer; transition: 0.3s; width: 280px; text-align: left;">
+                <div style="font-size: 30px; margin-bottom: 15px;">🎵</div>
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Çalma Listesi Motoru</div>
+                <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">1.2 Milyon şarkılık In-Memory veritabanında anlık aramalar yapın ve pointer listeleri oluşturun.</div>
+            </button>
+            
         </div>
         
         <style>
-            #page-home button:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-            #page-home button[onclick*="memory"]:hover { background: rgba(29, 185, 84, 0.1); }
-            #page-home button[onclick*="speed"]:hover { background: rgba(255, 152, 0, 0.1); }
+            #page-home button:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.4); border-color: #555; background: #222; }
+            #page-home button[onclick*="memory"]:hover { border-color: #1db954; }
+            #page-home button[onclick*="speed"]:hover { border-color: #ff9800; }
+            #page-home button[onclick*="playlists"]:hover { border-color: #00bcd4; }
         </style>
     </div>
+
     <div id="page-memory" class="page">
-        <h2>💾 Çoklu Bellek Analizi (Kopya vs Pointer)</h2>
-        <p style="color: var(--gray); font-size: 14px;">Birden fazla test durumu ekleyip değişimi grafikte görün.</p>
+        <h2 style="margin-top:0;">💾 Çoklu Bellek Analizi (Kopya vs Pointer)</h2>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 30px;">Birden fazla test durumu ekleyip değişimi grafikte görün.</p>
         
         <div id="mem-cases"></div>
         <button class="btn-add" onclick="addMemCase()">+ Yeni Durum Ekle</button>
-        <button class="btn-run" id="btn-run-mem" onclick="runAllMemory()">Tüm Durumları Çalıştır ve Analiz Et</button>
+        <button class="btn-run" id="btn-run-mem" onclick="runAllMemory()">Tüm Durumları Analiz Et</button>
         <div class="status" id="mem-status"></div>
 
         <div class="dashboard-grid" id="mem-dashboard">
@@ -99,7 +172,7 @@
                 <canvas id="memChart"></canvas>
             </div>
             <div class="bars-box">
-                <h3 style="margin-top:0; color: var(--primary);">Son Durumun Canlı Çubukları</h3>
+                <h3 style="margin-top:0; color: var(--text); font-weight: 600;">Son Durum Profili</h3>
                 <div class="bar-group">
                     <div class="bar-title"><span>Kopya Modeli (Rakip)</span> <span id="txt-mem-kopya">0 MB</span></div>
                     <div class="bar-bg"><div class="bar-fill" id="bar-mem-kopya" style="width: 100%;"></div></div>
@@ -113,12 +186,12 @@
     </div>
 
     <div id="page-speed" class="page">
-        <h2>🚀 Çoklu Arama Analizi (O(n) vs O(1))</h2>
-        <p style="color: var(--gray); font-size: 14px;">Veri seti büyüdükçe O(n) algoritmasının nasıl çöktüğünü, O(1)'in nasıl sabit kaldığını izleyin.</p>
+        <h2 style="margin-top:0;">🚀 Çoklu Arama Analizi (O(n) vs O(1))</h2>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 30px;">Veri seti büyüdükçe O(n) algoritmasının nasıl çöktüğünü, O(1)'in nasıl sabit kaldığını izleyin.</p>
         
         <div id="spd-cases"></div>
         <button class="btn-add" onclick="addSpdCase()">+ Yeni Durum Ekle</button>
-        <button class="btn-run" id="btn-run-spd" onclick="runAllSpeed()">Tüm Durumları Çalıştır ve Analiz Et</button>
+        <button class="btn-run" id="btn-run-spd" onclick="runAllSpeed()">Tüm Durumları Analiz Et</button>
         <div class="status" id="spd-status"></div>
 
         <div class="dashboard-grid" id="spd-dashboard" style="grid-template-columns: 1.5fr 1fr;">
@@ -126,7 +199,7 @@
                 <canvas id="speedChart"></canvas>
             </div>
             <div class="bars-box">
-                <h3 style="margin-top:0; color: var(--primary);">Son Durumun Canlı Çubukları</h3>
+                <h3 style="margin-top:0; color: var(--text); font-weight: 600;">Gecikme Profili (Latency)</h3>
                 <div class="bar-group">
                     <div class="bar-title"><span>Linked List (O(n))</span> <span id="txt-spd-ll">0 ms</span></div>
                     <div class="bar-bg"><div class="bar-fill" id="bar-spd-ll" style="width: 100%;"></div></div>
@@ -139,6 +212,42 @@
                     <div class="bar-title"><span>Double Hash (O(1))</span> <span id="txt-spd-dmap">0 ms</span></div>
                     <div class="bar-bg"><div class="bar-fill good" id="bar-spd-dmap"></div></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-playlists" class="page">
+        <h2 style="margin-top:0; color: var(--primary);">🎵 Çalma Listesi Motoru</h2>
+        <p style="color: var(--gray); font-size: 14px;">MiniStream veritabanı üzerinde anında pointer tabanlı çalma listeleri oluşturun.</p>
+        
+        <div class="playlist-container">
+            
+            <div class="playlist-left">
+                <h3 style="margin-top: 0; color: var(--text); font-weight: 600; font-size: 16px;">Listelerim</h3>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="new-playlist-name" placeholder="Yeni liste oluştur..." style="flex: 1; padding: 12px 15px; border-radius: 30px; border: 1px solid #444; background: #111; color: white; outline: none;">
+                    <button class="btn-run" style="padding: 10px 20px; font-size: 14px; width: auto;" onclick="createPlaylist()">Oluştur</button>
+                </div>
+                
+                <div id="accordion-container" class="custom-scroll">
+                    </div>
+            </div>
+
+            <div class="playlist-right">
+                
+                <div class="toolbar">
+                    <div class="pagination-controls">
+                        <button onclick="prevPage()" class="btn-page">◀ Önceki</button>
+                        <span id="page-info" style="font-size: 14px; color: var(--text); font-weight: bold; width: 70px; text-align: center;">Sayfa 1</span>
+                        <button onclick="nextPage()" class="btn-page">Sonraki ▶</button>
+                    </div>
+                    
+                    <input type="text" id="song-search" class="search-input" placeholder="🔍 Şarkı veya sanatçı ara..." onkeypress="searchInCEngine(event)">
+                </div>
+
+                <div id="songs-list" class="songs-scroll-box custom-scroll">
+                    </div>
             </div>
         </div>
     </div>
@@ -331,6 +440,195 @@
         addSpdCase(10000, 1000);
         addSpdCase(50000, 5000);
         addSpdCase(100000, 10000);
+
+        // ==========================================
+        // ÇALMA LİSTESİ VE ŞARKI YÖNETİMİ
+        // ==========================================
+
+        let playlists = [];
+        let activePlaylistId = null;
+        let listCounter = 1;
+        let dbSongs = []; // Veriler artık sunucudan gelecek
+
+        let currentPage = 1;
+        const limitPerPage = 30; 
+        let currentSearchQuery = "";
+
+        // Sunucudan Gerçek CSV Verilerini Çekme
+        async function fetchData(page) {
+            document.getElementById('songs-list').innerHTML = '<p style="color:var(--primary); text-align:center;">⚡ C Motoru aranıyor...</p>';
+            
+            try {
+                let url = "";
+                // Eğer hafızada bir arama metni varsa arama motoruna git
+                if (currentSearchQuery !== "") {
+                    url = `/api/c_search?q=${encodeURIComponent(currentSearchQuery)}&page=${page}&limit=${limitPerPage}`;
+                } else {
+                    // Arama kutusu boşsa genel listeyi getir
+                    url = `/api/songs?page=${page}&limit=${limitPerPage}`;
+                }
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("Sunucu hatası");
+                
+                dbSongs = await res.json();
+                
+                if (dbSongs.length === 0) {
+                    document.getElementById('songs-list').innerHTML = '<p style="color:var(--gray); text-align:center;">Sonuç bulunamadı veya sayfa sonu.</p>';
+                } else {
+                    renderSongs(dbSongs);
+                }
+                
+                document.getElementById('page-info').innerText = `Sayfa: ${page}`;
+                
+            } catch(e) {
+                console.error(e);
+                document.getElementById('songs-list').innerHTML = '<p style="color:#e91e63; text-align:center;">Veritabanına bağlanılamadı.</p>';
+            }
+        }
+
+        // Önceki Sayfa
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchData(currentPage);
+            }
+        }
+        // Sonraki sayfa
+        function nextPage() {
+            currentPage++;
+            fetchData(currentPage);
+        }
+
+        // Şarkıları Ekrana Bas 
+        function renderSongs(songs) {
+            const container = document.getElementById('songs-list');
+            container.innerHTML = '';
+            
+            songs.forEach(song => {
+                // Milisaniyeyi Dakika:Saniye formatına çevirme
+                const minutes = Math.floor(song.duration_ms / 60000);
+                const seconds = Math.floor((song.duration_ms % 60000) / 1000);
+                const timeStr = minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+
+                // Tırnak işaretlerinden dolayı JS hatası almamak için temizlik
+                const safeTitle = song.title.replace(/'/g, "\\'");
+                const safeArtist = song.artist.replace(/'/g, "\\'");
+
+                container.innerHTML += `
+                    <div class="song-item">
+                        <div class="song-info">
+                            <strong>${song.title}</strong>
+                            <span>🎤 ${song.artist} | ⏱️ ${timeStr} | 📅 ${song.release_date}</span>
+                        </div>
+                        <button class="btn-add-song" onclick="addSongToActiveList('${song.id}', '${safeTitle}', '${safeArtist}')">+ Ekle</button>
+                    </div>
+                `;
+            });
+        }
+
+        // C Motoru üzerinden arama
+        function searchInCEngine(event) {
+            if(event.key !== 'Enter') return; 
+
+            const val = document.getElementById('song-search').value.trim();
+            currentSearchQuery = val; // Aramayı hafızaya kaydet
+            currentPage = 1;          // Yeni aramada 1. sayfaya dön
+            
+            fetchData(currentPage);
+        }
+
+        // Yeni Playlist Oluştur
+        async function createPlaylist() {
+            const input = document.getElementById('new-playlist-name');
+            const name = input.value.trim();
+            if(!name) return alert("Lütfen bir liste adı girin!");
+
+            const newId = listCounter++;
+            
+            try {
+                // Python -> C yolculuğunu başlat
+                await fetch(`/api/playlist/create?id=${newId}&name=${encodeURIComponent(name)}`);
+                
+                const newList = { id: newId, name: name, songs: [] };
+                playlists.push(newList);
+                input.value = '';
+                renderPlaylists();
+                toggleAccordion(newId);
+                
+            } catch (e) {
+                alert("C Motoruna ulaşılamadı!");
+            }
+        }
+
+        // Sol Taraftaki Akordeon Listelerini Çiz
+        function renderPlaylists() {
+            const container = document.getElementById('accordion-container');
+            container.innerHTML = '';
+            
+            if(playlists.length === 0) {
+                container.innerHTML = '<p style="color:var(--gray); text-align:center; margin-top:20px;">Henüz listeniz yok.</p>';
+                return;
+            }
+
+            playlists.forEach(pl => {
+                const isActive = activePlaylistId === pl.id;
+                
+                let songsHtml = pl.songs.length === 0 
+                    ? '<div style="color:var(--gray); font-style:italic; font-size:13px;">Liste boş. Sağdan şarkı ekleyin.</div>' 
+                    : '';
+                
+                pl.songs.forEach(s => {
+                    songsHtml += `<div class="playlist-song-row"><span>🎵 ${s.title}</span> <span style="color:var(--gray);">${s.artist}</span></div>`;
+                });
+
+                container.innerHTML += `
+                    <div class="acc-item">
+                        <div class="acc-header ${isActive ? 'active' : ''}" onclick="toggleAccordion(${pl.id})">
+                            <span>📀 ${pl.name}</span>
+                            <span style="font-size:12px;">(${pl.songs.length} Şarkı)</span>
+                        </div>
+                        <div class="acc-content ${isActive ? 'active' : ''}">
+                            ${songsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Akordeon Mantığı (Sadece 1 liste açık kalır)
+        function toggleAccordion(id) {
+            if (activePlaylistId === id) {
+                activePlaylistId = null; 
+            } else {
+                activePlaylistId = id;   
+            }
+            renderPlaylists();
+        }
+
+        // Açık olan listeye şarkı ekle
+        async function addSongToActiveList(songId, title, artist) {
+            if (activePlaylistId === null) {
+                return alert("Lütfen önce sol taraftan bir çalma listesi seçin (tıklayarak açın).");
+            }
+
+            try {
+                // Python üzerinden C'deki liste_sarki_ekle fonksiyonunu çağır
+                await fetch(`/api/playlist/add_song?pl_id=${activePlaylistId}&song_id=${songId}&title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`);
+                
+                // Arayüzü de eşzamanlı güncelle
+                const pl = playlists.find(p => p.id === activePlaylistId);
+                pl.songs.push({ id: songId, title: title, artist: artist });
+                renderPlaylists(); 
+                
+            } catch (e) {
+                alert("Şarkı C RAM'ine eklenemedi!");
+            }
+        }
+
+        // Başlangıçta şarkıları sunucudan çek ve listeleri çiz
+        fetchData(1);
+        renderPlaylists();
     </script>
 </body>
 </html>

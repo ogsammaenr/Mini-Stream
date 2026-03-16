@@ -59,9 +59,12 @@ Sarki* csv_yukle(const char* dosya_yolu, int limit, int* toplam) {
         Sarki* s = sarki_olustur(*toplam, s_ad, s_art, s_alb, atoi(s_sure) / 1000);
         if (s) {
             s->yil = atoi(s_yil);
-            s->sonraki = bas; // Linked list'in başına ekle 
+            s->sonraki = bas; 
             bas = s;
             (*toplam)++;
+        } else {
+            printf("❌ KRITIK UYARI: RAM veya Izleyici Limiti Doldu! Yukleme %d. sarkida durduruldu.\n", *toplam);
+            break; // Dosyayı okumayı bırak!
         }
     }
 
