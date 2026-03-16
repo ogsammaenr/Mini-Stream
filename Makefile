@@ -93,5 +93,5 @@ bitis:
 # Temizlik Komutu
 clean:
 	@echo -e "$(RED)🗑️  Eski derleme dosyaları temizleniyor...$(RESET)"
-	@rm -f ministream ministream.so generator benchmark test_temel test_benchmark test_bellek
+	@rm -f ministream ministream.so generator benchmark test_temel test_benchmark test_bellek test_multithread
 	@echo -e "$(GREEN)✨ Tertemiz!$(RESET)\n"

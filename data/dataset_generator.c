@@ -31,7 +31,12 @@ const char* adjectives[] = {
     "Deaf", "Muted", "Screaming", "Weeping", "Laughing", "Dying", "Living", "Immortal", "Mortal", "Divine",
     "Unholy", "Blessed", "Doomed", "Forgotten", "Remembered", "Secret", "Public", "Royal", "Peasant", "Urban",
     "Rural", "Wild", "Tame", "Angry", "Calm", "Stormy", "Peaceful", "Cold", "Hot", "Warm",
-    "Freezing", "Boiling", "Hollow", "Fragile", "Tough", "Rough", "Smooth", "Sharp", "Dull", "Hazy"
+    "Freezing", "Boiling", "Hollow", "Fragile", "Tough", "Rough", "Smooth", "Sharp", "Dull", "Hazy",
+    "Static", "Kinetic", "Obsidian", "Neon-Soaked", "Gilded", "Synthetic", "Aetheric", "Submerged", "Fractured", "Volatile",
+    "Primal", "Mechanical", "Ethereal", "Chromatic", "Vivid", "Pale", "Infinite", "Terminal", "Sullen", "Resonant",
+    "Glimmering", "Feral", "Industrial", "Velvet", "Metallic", "Organic", "Digital", "Analog", "Spectral", "Monochrome",
+    "Gothic", "Retro", "Obscure", "Fleeting", "Ancient", "Modern", "Brutal", "Elegant", "Solitary", "Crowded",
+    "Faded", "Glowing", "Invisible", "Vibrant", "Restless", "Manic", "Serene", "Atomic", "Molecular", "Cosmic"
 };
 
 const char* nouns[] = {
@@ -44,7 +49,12 @@ const char* nouns[] = {
     "Puddle", "Drop", "Smile", "Frown", "Voice", "Whisper", "Scream", "Shout", "Song", "Tune",
     "Chord", "Note", "Bass", "Treble", "Synth", "Guitar", "Drum", "Piano", "Violin", "Cello",
     "Flute", "Horn", "Trumpet", "Brass", "Wood", "Metal", "Plastic", "Glass", "Mirror", "Window",
-    "Door", "Wall", "Floor", "Ceiling", "Roof", "Space", "Void", "Abyss", "Chasm", "Canyon"
+    "Door", "Wall", "Floor", "Ceiling", "Roof", "Space", "Void", "Abyss", "Chasm", "Canyon",
+    "Circuit", "Signal", "Fragment", "Engine", "Tower", "Temple", "Cortex", "Anomaly", "Threshold", "Avenue",
+    "Harbor", "Sanctuary", "Monolith", "Archive", "Protocol", "Network", "Gravity", "Orbit", "Satellite", "Comet",
+    "Blueprint", "Artifact", "Serum", "Vortex", "Canyon", "Glacier", "Summit", "Valley", "Labyrinth", "Corridor",
+    "Canvas", "Statue", "Relic", "Engine", "Turbine", "Prophet", "Nomad", "Outcast", "Citizen", "Pilot",
+    "Radio", "Radar", "Compass", "Beacon", "Anchor", "Chain", "Bridge", "Talon", "Feather", "Bone"
 };
 
 const char* artist_pool[] = {
@@ -56,7 +66,12 @@ const char* artist_pool[] = {
     "DJ Horizon", "The Soundscapes", "Vaporwave Surfers", "Synth City", "Neon Knights", "Dark Matter", "Supernova", "Black Hole", "Event Horizon", "Time Travelers",
     "Space Cowboys", "Galactic Groove", "The Asteroids", "Meteor Shower", "Comet Tail", "Starlight", "Moonbeam", "Sunray", "Eclipse", "Phase",
     "Frequency", "Amplitude", "Wavelength", "Resonance", "Harmonic", "Melodic", "Rhythmic", "Acoustic", "Magnetic", "Kinetic",
-    "Static", "Dynamic", "Fluid", "Gas", "Plasma", "Ether", "Zero Gravity", "Deep Core", "Mantle", "Tectonic"
+    "Static", "Dynamic", "Fluid", "Gas", "Plasma", "Ether", "Zero Gravity", "Deep Core", "Mantle", "Tectonic",
+    "The Outliers", "Silicon Valley Boys", "Carbon Copy", "Atomic Bloom", "Neon Samurai", "Iron Lotus", "The Glitch Mob", "Binary Solo", "Omega Point", "Neural Link",
+    "Frequency Shifters", "Terminal Velocity", "The Algorithm", "Paper Planes", "Static Age", "Marble Statues", "Golden Era", "Desert Rose", "Midnight Express", "Night Crawler",
+    "The Architect", "Siren Call", "Electric Dreams", "Radio Silence", "Voodoo Logic", "Primal Screamers", "The Seers", "Hidden Figures", "Analog Dreams", "Digital Nomads",
+    "The Last Byte", "Vector Fields", "Monochrome Skies", "Velvet Thunder", "The Alchemists", "Liquid Gold", "Solar Winds", "Plasma Burn", "The Void Walkers", "Iron & Wine",
+    "Deep Space Nine", "The Pulsars", "Nebula Seven", "Star Map", "The Cartographers", "Echo Location", "Sound Theory", "The Method", "Abstract Art", "Urban Legends"
 };
 
 // Dizilerin eleman sayılarını hesapla
